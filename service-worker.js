@@ -1,4 +1,4 @@
-const CACHE_NAME = "quest-rpg-v0.1.0";
+const CACHE_NAME = "quest-rpg-v0.3.0"
 const ASSETS = [
   "./",
   "./index.html",
@@ -17,6 +17,10 @@ const ASSETS = [
   "./js/game/combat.js",
   "./js/game/loot.js",
   "./js/game/campaign.js",
+  "./js/game/level.js",
+  "./js/game/loot.js",
+  "./js/game/theme.js",
+  "./js/game/xp.js",
   "./manifest.webmanifest",
   "./assets/icons/app-icon.svg",
   "./assets/icons/tab-today.svg",
@@ -28,6 +32,7 @@ const ASSETS = [
   "./assets/icons/cat-project.svg",
   "./assets/icons/cat-life.svg",
   "./assets/icons/cat-custom.svg"
+
 ];
 
 self.addEventListener("install", (event) => {

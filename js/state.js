@@ -53,7 +53,11 @@ export function initState(){
       narrative: { lastLineId: null, lastText: "You step into the Mossy Ruins. Something squishes nearby." }
     },
 
-    inventory: { equippedWeaponId: null, weapons: [] },
+    inventory: {
+      equippedWeaponId: null,
+      weapons: [],
+      modules: []
+    },
 
     storyLog: [{ id: "log_start", dateISO: todayISO(), type: "system", text: "Your journey begins." }]
   };

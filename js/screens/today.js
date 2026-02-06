@@ -6,6 +6,10 @@ import { computeDamage, applyDamage } from "../game/combat.js"
 import { pickLine } from "../game/narrative.js"
 import { openAddQuestModal } from "./today_addQuestModal.js"
 import { getTheme } from "../game/theme.js"
+import { calculateXpForQuest } from "../game/xp.js"
+import { applyLevelUps } from "../game/level.js"
+import { rollBossReward, applyRewardToStats } from "../game/loot.js"
+import { getTheme } from "../game/theme.js"
 
 
 const CAT_ICON = {
@@ -159,7 +163,8 @@ async function completeQuest(questId){
     applyDamage(state, dmg)
 
     const hitLine = pickLine({ themeId: state.user.themeId || "fantasy", tone: state.user.tone, kind: "hit" })
-    state.campaign.narrative.lastText = `${hitLine.text} (-${dmg} HP)`
+    state.campaign.narrative.lastText =
+        `${hitLine.text} (+${xpGained} XP, ${dmg} ${getTheme(state).labels.hp})`
 
     if (state.campaign.enemy.hp <= 0) {
       handleEnemyDefeated(state)
@@ -168,7 +173,19 @@ async function completeQuest(questId){
     setState(state)
     await Store.saveApp(getState())
 
-    toast(`Quest complete. Damage ${dmg}.`)
+    const xpGained = calculateXpForQuest(state, q)
+
+    state.today.xpEarned += xpGained
+    state.user.xpTotal += xpGained
+
+    const levelResult = applyLevelUps(state)
+    if (levelResult.leveledUp) {
+      const L = getTheme(state).labels
+      state.campaign.narrative.lastText =
+          `Level up. Systems improved. Power and endurance increased.`
+    }
+
+    toast(`Objective logged. +${xpGained} XP`)
     rerenderToday()
   } finally {
     inFlight.delete(questId)
@@ -199,6 +216,19 @@ function handleEnemyDefeated(state){
     state.campaign.chapter = (state.campaign.chapter ?? 1) + 1
     state.campaign.areaIndex = (state.campaign.areaIndex ?? 0) + 1
     state.campaign.minorsDefeatedInArea = 0
+
+    const themeId = state.user.themeId || "fantasy"
+    const reward = rollBossReward(themeId)
+
+    if (themeId === "space") state.inventory.modules.unshift(reward)
+    else state.inventory.weapons.unshift(reward)
+
+    applyRewardToStats(state, reward)
+
+    state.campaign.narrative.lastText =
+        themeId === "space"
+            ? `Major anomaly contained. You salvage a ${reward.name} (+${reward.amount} ${reward.stat}).`
+            : `Boss defeated. You loot a ${reward.name} (+${reward.amount} ${reward.stat}).`
 
     state.campaign.theme = nextTheme(state.campaign.theme)
 
