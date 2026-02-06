@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Quest Habit RPG</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./assets/icons/app-icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./css/app.css" />
+</head>
+<body>
+  <div class="app" id="appRoot">
+    <header class="topbar">
+      <div class="brand">
+        <img class="brand__icon" src="./assets/icons/app-icon.svg" alt="" />
+        <div class="brand__text">
+          <div class="brand__title">Quest Habit RPG</div>
+          <div class="brand__subtitle">Local-first PWA prototype</div>
+        </div>
+      </div>
+      <div class="topbar__right">
+        <span class="pill" id="pillStatus">Offline-ready</span>
+      </div>
+    </header>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab is-active" data-route="today" type="button">
+        <img class="tab__icon" src="./assets/icons/tab-today.svg" alt="" />
+        <span>Today</span>
+      </button>
+      <button class="tab" data-route="progress" type="button">
+        <img class="tab__icon" src="./assets/icons/tab-progress.svg" alt="" />
+        <span>Progress</span>
+      </button>
+      <button class="tab" data-route="settings" type="button">
+        <img class="tab__icon" src="./assets/icons/tab-settings.svg" alt="" />
+        <span>Settings</span>
+      </button>
+    </nav>
+
+    <main class="main" id="screenRoot" aria-live="polite"></main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div class="modalOverlay is-hidden" id="modalOverlay" role="dialog" aria-modal="true"></div>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
