@@ -162,12 +162,22 @@ async function completeQuest(questId){
     const dmg = computeDamage(state, q)
     applyDamage(state, dmg)
 
+    const xpGained = calculateXpForQuest(state, q)
+    state.today.xpEarned += xpGained
+    state.user.xpTotal += xpGained
+
     const hitLine = pickLine({ themeId: state.user.themeId || "fantasy", tone: state.user.tone, kind: "hit" })
+
     state.campaign.narrative.lastText =
         `${hitLine.text} (+${xpGained} XP, ${dmg} ${getTheme(state).labels.hp})`
 
     if (state.campaign.enemy.hp <= 0) {
       handleEnemyDefeated(state)
+    }
+
+    const levelResult = applyLevelUps(state)
+    if (levelResult.leveledUp) {
+      state.campaign.narrative.lastText = `Level up. Systems improved. Power and endurance increased.`
     }
 
     setState(state)
