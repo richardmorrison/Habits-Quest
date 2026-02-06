@@ -20,6 +20,15 @@ async function main(){
   if (persisted) setState(persisted);
   else await Store.saveApp(getState());
 
+  function applyThemeFromState(){
+    const appRoot = document.getElementById("appRoot")
+    if (!appRoot) return
+    const s = getState()
+    appRoot.dataset.theme = s.user?.themeId || "fantasy"
+  }
+
+  applyThemeFromState()
+
   const updated = ensureTodaySeedData(getState());
   if (updated._touched) {
     delete updated._touched;
@@ -33,6 +42,7 @@ async function main(){
       [...tabs.querySelectorAll(".tab")].forEach((b) => {
         b.classList.toggle("is-active", b.dataset.route === routeName);
       });
+      applyThemeFromState()
       screenRoot.innerHTML = "";
       routes[routeName]({ root: screenRoot });
     }

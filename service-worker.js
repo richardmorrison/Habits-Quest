@@ -1,4 +1,4 @@
-const CACHE_NAME = "quest-rpg-v0.3.0"
+const CACHE_NAME = "quest-rpg-v0.3.1"
 const ASSETS = [
   "./",
   "./index.html",
@@ -18,7 +18,6 @@ const ASSETS = [
   "./js/game/loot.js",
   "./js/game/campaign.js",
   "./js/game/level.js",
-  "./js/game/loot.js",
   "./js/game/theme.js",
   "./js/game/xp.js",
   "./manifest.webmanifest",
