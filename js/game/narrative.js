@@ -7,10 +7,11 @@ const LINES = [
   { id: "hit_3", tones: ["Playful Chaos"], text: "Bonk. The enemy wobbles like jelly." }
 ];
 
-export function pickLine({ tone, kind }){
-  const pool = LINES.filter((l) => l.tones.includes(tone));
-  const list = pool.length ? pool : LINES;
-  const filtered = kind ? list.filter((l) => l.id.startsWith(kind)) : list;
-  const use = filtered.length ? filtered : list;
-  return use[Math.floor(Math.random() * use.length)];
+export function pickLine({ themeId, tone, kind }){
+  const list = LINES.filter((l) => (l.themeIds || ["fantasy"]).includes(themeId))
+  const tonePool = list.filter((l) => l.tones.includes(tone))
+  const pool = tonePool.length ? tonePool : list
+  const filtered = kind ? pool.filter((l) => l.id.startsWith(kind)) : pool
+  const use = filtered.length ? filtered : pool
+  return use[Math.floor(Math.random() * use.length)]
 }

@@ -14,6 +14,7 @@ export function initState(){
       power: 6,
       endurance: 5,
       tone: "Steady Progress",
+      themeId: "fantasy",
       lastActiveISO: todayISO()
     },
 

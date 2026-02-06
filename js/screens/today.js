@@ -5,6 +5,8 @@ import { Store } from "../store.js"
 import { computeDamage, applyDamage } from "../game/combat.js"
 import { pickLine } from "../game/narrative.js"
 import { openAddQuestModal } from "./today_addQuestModal.js"
+import { getTheme } from "../game/theme.js"
+
 
 const CAT_ICON = {
   Fitness: "./assets/icons/cat-fitness.svg",
@@ -156,7 +158,7 @@ async function completeQuest(questId){
     const dmg = computeDamage(state, q)
     applyDamage(state, dmg)
 
-    const hitLine = pickLine({ tone: state.user.tone, kind: "hit" })
+    const hitLine = pickLine({ themeId: state.user.themeId || "fantasy", tone: state.user.tone, kind: "hit" })
     state.campaign.narrative.lastText = `${hitLine.text} (-${dmg} HP)`
 
     if (state.campaign.enemy.hp <= 0) {
@@ -300,6 +302,8 @@ function ensureCampaignShape(state){
 }
 
 function rerenderToday(){
+  const theme = getTheme(state)
+  const L = theme.labels
   const root = document.getElementById("screenRoot")
   root.innerHTML = ""
   renderToday({ root })
