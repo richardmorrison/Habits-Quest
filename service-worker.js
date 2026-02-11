@@ -17,7 +17,7 @@ const ASSETS = [
   "./js/game/narrative.js",
   "./js/game/combat.js",
   "./js/game/campaign.js",
-  "./js/game/levels.js",
+  "./js/game/level.js",
   "./js/game/loot.js",
   "./js/game/theme.js",
   "./js/game/xp.js",
