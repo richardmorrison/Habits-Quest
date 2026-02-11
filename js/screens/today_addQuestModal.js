@@ -93,20 +93,32 @@ export async function openAddQuestModal({ onSave }){
   overlay.appendChild(modal);
 
   form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const data = new FormData(form);
+    e.preventDefault()
 
-    const title = String(data.get("title") || "").trim();
-    const category = String(data.get("category") || "Custom");
-    const repeatType = String(data.get("repeatType") || "daily");
+    // 1) Safety check: onSave must exist
+    if (typeof onSave !== "function") {
+      alert("Save handler is missing. Please reload the app.")
+      return
+    }
+
+    const data = new FormData(form)
+
+    const title = String(data.get("title") || "").trim()
+    if (!title) {
+      alert("Please enter a quest name.")
+      return
+    }
+
+    const category = String(data.get("category") || "Custom")
+    const repeatType = String(data.get("repeatType") || "daily")
 
     const repeat =
-      repeatType === "times_per_week"
-        ? { type: "times_per_week", times: Number(data.get("timesPerWeek") || 3) }
-        : { type: "daily" };
+        repeatType === "times_per_week"
+            ? { type: "times_per_week", times: Number(data.get("timesPerWeek") || 3) }
+            : { type: "daily" }
 
-    const effortType = String(data.get("effortType") || "simple");
-    let effort = { type: "simple" };
+    const effortType = String(data.get("effortType") || "simple")
+    let effort = { type: "simple" }
 
     if (effortType === "reps") {
       effort = {
@@ -116,7 +128,7 @@ export async function openAddQuestModal({ onSave }){
         rank: 1,
         rankCompletionsRequired: 7,
         autoRankUp: String(data.get("autoRankUp")) === "true"
-      };
+      }
     }
 
     if (effortType === "sets_reps") {
@@ -124,10 +136,10 @@ export async function openAddQuestModal({ onSave }){
         type: "sets_reps",
         sets: Number(data.get("sets") || 3),
         reps: Number(data.get("reps") || 10)
-      };
+      }
     }
 
-    const weight = effort.type === "simple" ? 1.0 : (effort.type === "reps" ? 1.2 : 1.4);
+    const weight = effort.type === "simple" ? 1.0 : (effort.type === "reps" ? 1.2 : 1.4)
 
     const quest = {
       id: uid("q"),
@@ -138,11 +150,16 @@ export async function openAddQuestModal({ onSave }){
       weight,
       status: "active",
       createdAtISO: todayISO()
-    };
+    }
 
-    await onSave(quest);
-    close();
-  });
+    try {
+      await onSave(quest)
+      close()
+    } catch (err) {
+      console.error(err)
+      alert("Could not save quest. Check console for details.")
+    }
+  })
 }
 
 function field(labelText, inputEl){
