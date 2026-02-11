@@ -6,7 +6,7 @@ import { computeDamage, applyDamage } from "../game/combat.js"
 import { pickLine } from "../game/narrative.js"
 import { openAddQuestModal } from "./today_addQuestModal.js"
 import { calculateXpForQuest } from "../game/xp.js"
-import { applyLevelUps } from "../game/levels.js"
+import { applyLevelUps } from "../game/level.js"
 import { rollBossReward, applyRewardToStats } from "../game/loot.js"
 import { getTheme } from "../game/theme.js"
 
