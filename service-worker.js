@@ -1,4 +1,5 @@
-const CACHE_NAME = "quest-rpg-v0.3.1"
+const CACHE_NAME = "quest-rpg-v0.3.2"
+
 const ASSETS = [
   "./",
   "./index.html",
@@ -15,9 +16,9 @@ const ASSETS = [
   "./js/screens/settings.js",
   "./js/game/narrative.js",
   "./js/game/combat.js",
-  "./js/game/loot.js",
   "./js/game/campaign.js",
-  "./js/game/level.js",
+  "./js/game/levels.js",
+  "./js/game/loot.js",
   "./js/game/theme.js",
   "./js/game/xp.js",
   "./manifest.webmanifest",
@@ -31,36 +32,36 @@ const ASSETS = [
   "./assets/icons/cat-project.svg",
   "./assets/icons/cat-life.svg",
   "./assets/icons/cat-custom.svg"
+]
 
-];
+function unique(list){
+  return Array.from(new Set(list))
+}
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
-  self.skipWaiting();
-});
+  event.waitUntil(
+      caches.open(CACHE_NAME).then((cache) => cache.addAll(unique(ASSETS)))
+  )
+  self.skipWaiting()
+})
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.map((k) => (k === CACHE_NAME ? null : caches.delete(k))));
-    await self.clients.claim();
-  })());
-});
+  event.waitUntil(
+      caches.keys().then((keys) =>
+          Promise.all(keys.map((k) => (k === CACHE_NAME ? null : caches.delete(k))))
+      )
+  )
+  self.clients.claim()
+})
 
 self.addEventListener("fetch", (event) => {
-  const req = event.request;
-  if (req.method !== "GET") return;
+  const req = event.request
+  if (req.method !== "GET") return
 
-  event.respondWith((async () => {
-    const cached = await caches.match(req);
-    if (cached) return cached;
-
-    const res = await fetch(req);
-    const url = new URL(req.url);
-    if (url.origin === location.origin) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(req, res.clone());
-    }
-    return res;
-  })());
-});
+  event.respondWith(
+      caches.match(req).then((cached) => {
+        if (cached) return cached
+        return fetch(req)
+      })
+  )
+})

@@ -19,27 +19,27 @@ export function renderSettings({ root }){
       "select",
       { id: "themeSelect" },
       Object.values(THEMES).map((t) =>
-          el("option", { value: t.id, selected: t.id === (state.user.themeId || "fantasy") ? "true" : null }, [t.name])
+          el(
+              "option",
+              { value: t.id, selected: t.id === (state.user.themeId || "fantasy") ? "true" : null },
+              [t.name]
+          )
       )
   )
 
   const toneSelect = el(
       "select",
       { id: "toneSelect" },
-      TONES.map((t) => el("option", { value: t, selected: t === state.user.tone ? "true" : null }, [t]))
+      TONES.map((t) =>
+          el("option", { value: t, selected: t === state.user.tone ? "true" : null }, [t])
+      )
   )
 
   const card = el("div", { class: "card section stack" }, [
     el("div", { class: "sectionTitle" }, ["Settings"]),
     el("div", { class: "muted" }, ["Theme changes the story world and labels. Tone changes the narrative voice."]),
-    el("div", { class: "field" }, [
-      el("label", {}, ["Theme"]),
-      themeSelect
-    ]),
-    el("div", { class: "field" }, [
-      el("label", {}, ["Narrative tone"]),
-      toneSelect
-    ]),
+    el("div", { class: "field" }, [el("label", {}, ["Theme"]), themeSelect]),
+    el("div", { class: "field" }, [el("label", {}, ["Narrative tone"]), toneSelect]),
     el("div", { class: "rowWrap" }, [
       el("button", { class: "btn", type: "button", id: "exportBtn" }, ["Export data (JSON)"]),
       el("button", { class: "btn danger", type: "button", id: "resetBtn" }, ["Reset local data"])
@@ -54,6 +54,10 @@ export function renderSettings({ root }){
     s.user.themeId = themeSelect.value
     setState(s)
     await Store.saveApp(getState())
+
+    const appRoot = document.getElementById("appRoot")
+    if (appRoot) appRoot.dataset.theme = s.user.themeId || "fantasy"
+
     toast("Theme updated.")
   })
 

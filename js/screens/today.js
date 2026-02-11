@@ -6,10 +6,9 @@ import { computeDamage, applyDamage } from "../game/combat.js"
 import { pickLine } from "../game/narrative.js"
 import { openAddQuestModal } from "./today_addQuestModal.js"
 import { calculateXpForQuest } from "../game/xp.js"
-import { applyLevelUps } from "../game/level.js"
+import { applyLevelUps } from "../game/levels.js"
 import { rollBossReward, applyRewardToStats } from "../game/loot.js"
 import { getTheme } from "../game/theme.js"
-
 
 const CAT_ICON = {
   Fitness: "./assets/icons/cat-fitness.svg",
@@ -24,8 +23,10 @@ const inFlight = new Set()
 
 export function renderToday({ root }){
   const state = getState()
-
   ensureCampaignShape(state)
+
+  const theme = getTheme(state)
+  const L = theme.labels
 
   const enemyPct = Math.round((state.campaign.enemy.hp / state.campaign.enemy.hpMax) * 100)
 
@@ -38,10 +39,10 @@ export function renderToday({ root }){
       el("span", { class: "badge" }, [`Lv ${state.user.level}`])
     ]),
     el("div", { class: "rowWrap" }, [
-      el("span", { class: "badge" }, [`Enemy: ${state.campaign.enemy.name}`]),
-      el("span", { class: "badge" }, [`HP ${state.campaign.enemy.hp}/${state.campaign.enemy.hpMax}`]),
+      el("span", { class: "badge" }, [`${L.enemy}: ${state.campaign.enemy.name}`]),
+      el("span", { class: "badge" }, [`${L.hp} ${state.campaign.enemy.hp}/${state.campaign.enemy.hpMax}`]),
       el("span", { class: "badge" }, [`Tone: ${state.user.tone}`]),
-      el("span", { class: "badge" }, [`Chapter ${state.campaign.chapter}`])
+      el("span", { class: "badge" }, [`${L.chapter} ${state.campaign.chapter}`])
     ]),
     el("div", { class: "progress", "aria-label": "Enemy health" }, [
       el("div", { style: `width:${enemyPct}%` })
@@ -53,16 +54,16 @@ export function renderToday({ root }){
   const list = el("div", { class: "card section stack" }, [
     el("div", { class: "row" }, [
       el("div", {}, [
-        el("div", { class: "sectionTitle" }, ["Today quests"]),
-        el("div", { class: "small" }, ["Tap Do it to apply automatic battle damage and log progress."])
+        el("div", { class: "sectionTitle" }, [L.todayQuests || "Today quests"]),
+        el("div", { class: "small" }, ["Tap the button to apply automatic battle damage and log progress."])
       ]),
-      el("button", { class: "btn primary", type: "button", id: "addQuestBtn" }, ["Add quest"])
+      el("button", { class: "btn primary", type: "button", id: "addQuestBtn" }, [L.addQuest || "Add quest"])
     ]),
     el(
         "div",
         { class: "list", id: "questList" },
         quests.length
-            ? quests.map((q) => questRow(q, state))
+            ? quests.map((q) => questRow(q, state, L))
             : [el("div", { class: "muted" }, ["No quests yet. Add one to begin."])]
     )
   ])
@@ -84,7 +85,7 @@ export function renderToday({ root }){
   })
 }
 
-function questRow(q, state){
+function questRow(q, state, L){
   const isDone = state.today.completedQuestIds.includes(q.id)
   const meta = questMeta(q)
   const icon = CAT_ICON[q.category] || CAT_ICON.Custom
@@ -105,11 +106,9 @@ function questRow(q, state){
             class: `btn slim ${isDone ? "" : "primary"}`,
             type: "button",
             disabled: isDone ? "true" : null,
-            onclick: async () => {
-              await completeQuest(q.id)
-            }
+            onclick: async () => completeQuest(q.id)
           },
-          [isDone ? "Done" : "Do it"]
+          [isDone ? (L.done || "Done") : (L.doIt || "Do it")]
       )
     ])
   ])
@@ -154,7 +153,6 @@ async function completeQuest(questId){
     state.today.completedQuestIds.push(questId)
 
     const effortValue = inferEffortValue(q)
-
     const completionId = uid("c")
     await Store.addCompletion({ id: completionId, questId, dateISO: today, effortValue })
 
@@ -165,10 +163,10 @@ async function completeQuest(questId){
     state.today.xpEarned += xpGained
     state.user.xpTotal += xpGained
 
-    const hitLine = pickLine({ themeId: state.user.themeId || "fantasy", tone: state.user.tone, kind: "hit" })
-
-    state.campaign.narrative.lastText =
-        `${hitLine.text} (+${xpGained} XP, ${dmg} ${getTheme(state).labels.hp})`
+    const themeId = state.user.themeId || "fantasy"
+    const L = getTheme(state).labels
+    const hitLine = pickLine({ themeId, tone: state.user.tone, kind: "hit" })
+    state.campaign.narrative.lastText = `${hitLine.text} (+${xpGained} XP, ${dmg} ${L.hp})`
 
     if (state.campaign.enemy.hp <= 0) {
       handleEnemyDefeated(state)
@@ -176,25 +174,16 @@ async function completeQuest(questId){
 
     const levelResult = applyLevelUps(state)
     if (levelResult.leveledUp) {
-      state.campaign.narrative.lastText = `Level up. Systems improved. Power and endurance increased.`
+      state.campaign.narrative.lastText =
+          themeId === "space"
+              ? "Level up. Systems upgraded. Power and endurance increased."
+              : "Level up. You feel stronger. Power and endurance increased."
     }
 
     setState(state)
     await Store.saveApp(getState())
 
-    const xpGained = calculateXpForQuest(state, q)
-
-    state.today.xpEarned += xpGained
-    state.user.xpTotal += xpGained
-
-    const levelResult = applyLevelUps(state)
-    if (levelResult.leveledUp) {
-      const L = getTheme(state).labels
-      state.campaign.narrative.lastText =
-          `Level up. Systems improved. Power and endurance increased.`
-    }
-
-    toast(`Objective logged. +${xpGained} XP`)
+    toast(themeId === "space" ? `Objective logged. +${xpGained} XP` : `Quest complete. +${xpGained} XP`)
     rerenderToday()
   } finally {
     inFlight.delete(questId)
@@ -219,16 +208,16 @@ function inferEffortValue(q){
 }
 
 function handleEnemyDefeated(state){
-  const wasBoss = state.campaign.enemy.type === "boss"
+  const themeId = state.user.themeId || "fantasy"
+  const isBoss = state.campaign.enemy.type === "boss"
+  const L = getTheme(state).labels
 
-  if (wasBoss) {
+  if (isBoss) {
     state.campaign.chapter = (state.campaign.chapter ?? 1) + 1
     state.campaign.areaIndex = (state.campaign.areaIndex ?? 0) + 1
     state.campaign.minorsDefeatedInArea = 0
 
-    const themeId = state.user.themeId || "fantasy"
     const reward = rollBossReward(themeId)
-
     if (themeId === "space") state.inventory.modules.unshift(reward)
     else state.inventory.weapons.unshift(reward)
 
@@ -236,18 +225,14 @@ function handleEnemyDefeated(state){
 
     state.campaign.narrative.lastText =
         themeId === "space"
-            ? `Major anomaly contained. You salvage a ${reward.name} (+${reward.amount} ${reward.stat}).`
-            : `Boss defeated. You loot a ${reward.name} (+${reward.amount} ${reward.stat}).`
-
-    state.campaign.theme = nextTheme(state.campaign.theme)
-
-    state.campaign.narrative.lastText =
-        `The boss collapses. The path opens. Chapter ${state.campaign.chapter} begins.`
+            ? `Major anomaly contained. You salvage a ${reward.name} (+${reward.amount} ${reward.stat}). ${L.chapter} ${state.campaign.chapter} begins.`
+            : `Boss defeated. You loot a ${reward.name} (+${reward.amount} ${reward.stat}). ${L.chapter} ${state.campaign.chapter} begins.`
   } else {
     state.campaign.minorsDefeatedInArea = (state.campaign.minorsDefeatedInArea ?? 0) + 1
-
     state.campaign.narrative.lastText =
-        `Enemy defeated. The air feels lighter. (${state.campaign.minorsDefeatedInArea}/3 toward a boss)`
+        themeId === "space"
+            ? `Minor anomaly resolved. (${state.campaign.minorsDefeatedInArea}/3 toward a major anomaly)`
+            : `Enemy defeated. (${state.campaign.minorsDefeatedInArea}/3 toward a boss)`
   }
 
   state.campaign.enemy = spawnNextEnemy(state)
@@ -256,41 +241,48 @@ function handleEnemyDefeated(state){
 function spawnNextEnemy(state){
   const minors = state.campaign.minorsDefeatedInArea ?? 0
   const shouldSpawnBoss = minors >= 3
-
-  if (shouldSpawnBoss) {
-    return spawnBoss(state)
-  }
-
+  if (shouldSpawnBoss) return spawnBoss(state)
   return spawnMinor(state)
 }
 
 function spawnMinor(state){
-  const options = [
-    { name: "Moss Slime", hp: 35 },
-    { name: "Pebble Gremlin", hp: 42 },
-    { name: "Fog Moth", hp: 38 },
-    { name: "Creaky Vine", hp: 45 }
-  ]
+  const themeId = state.user.themeId || "fantasy"
+
+  const options = themeId === "space"
+      ? [
+        { name: "Ion Drift", hp: 35 },
+        { name: "Debris Cluster", hp: 42 },
+        { name: "Signal Echo", hp: 38 },
+        { name: "Micro Meteor Swarm", hp: 45 }
+      ]
+      : [
+        { name: "Moss Slime", hp: 35 },
+        { name: "Pebble Gremlin", hp: 42 },
+        { name: "Fog Moth", hp: 38 },
+        { name: "Creaky Vine", hp: 45 }
+      ]
 
   const pick = options[Math.floor(Math.random() * options.length)]
   const levelBoost = Math.max(0, (state.user.level ?? 1) - 1)
   const hpMax = pick.hp + levelBoost * 3
 
-  return {
-    id: uid("e_minor"),
-    name: pick.name,
-    type: "minor",
-    hpMax,
-    hp: hpMax
-  }
+  return { id: uid("e_minor"), name: pick.name, type: "minor", hpMax, hp: hpMax }
 }
 
 function spawnBoss(state){
-  const options = [
-    { name: "Slime Baron", hp: 90 },
-    { name: "Gatekeeper Wisp", hp: 100 },
-    { name: "Old Stone Sentinel", hp: 110 }
-  ]
+  const themeId = state.user.themeId || "fantasy"
+
+  const options = themeId === "space"
+      ? [
+        { name: "Void Sentinel", hp: 90 },
+        { name: "Gravity Well Prime", hp: 100 },
+        { name: "Signal Eater", hp: 110 }
+      ]
+      : [
+        { name: "Slime Baron", hp: 90 },
+        { name: "Gatekeeper Wisp", hp: 100 },
+        { name: "Old Stone Sentinel", hp: 110 }
+      ]
 
   const pick = options[Math.floor(Math.random() * options.length)]
   const levelBoost = Math.max(0, (state.user.level ?? 1) - 1)
@@ -298,19 +290,7 @@ function spawnBoss(state){
 
   state.campaign.minorsDefeatedInArea = 0
 
-  return {
-    id: uid("e_boss"),
-    name: pick.name,
-    type: "boss",
-    hpMax,
-    hp: hpMax
-  }
-}
-
-function nextTheme(current){
-  const themes = ["Mossy Ruins", "Breezy Tunnels", "Sunken Library", "Crystal Steps", "Ash Orchard"]
-  const idx = Math.max(0, themes.indexOf(current))
-  return themes[(idx + 1) % themes.length]
+  return { id: uid("e_boss"), name: pick.name, type: "boss", hpMax, hp: hpMax }
 }
 
 function ensureCampaignShape(state){
@@ -326,23 +306,28 @@ function ensureCampaignShape(state){
 
   if (!state.campaign.narrative) state.campaign.narrative = {}
   if (!state.campaign.narrative.lastText) {
-    state.campaign.narrative.lastText = "You step forward. Something watches you from the dark."
+    state.campaign.narrative.lastText =
+        state.user?.themeId === "space"
+            ? "Mission systems online. A new sector awaits."
+            : "You step forward. Something watches you from the dark."
   }
 
   if (!state.campaign.enemy) {
     state.campaign.enemy = {
       id: uid("e_minor"),
-      name: "Moss Slime",
+      name: state.user?.themeId === "space" ? "Ion Drift" : "Moss Slime",
       type: "minor",
       hpMax: 35,
       hp: 35
     }
   }
+
+  if (!state.inventory) state.inventory = { equippedWeaponId: null, weapons: [], modules: [] }
+  if (!state.inventory.weapons) state.inventory.weapons = []
+  if (!state.inventory.modules) state.inventory.modules = []
 }
 
 function rerenderToday(){
-  const theme = getTheme(state)
-  const L = theme.labels
   const root = document.getElementById("screenRoot")
   root.innerHTML = ""
   renderToday({ root })
