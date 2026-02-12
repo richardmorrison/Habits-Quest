@@ -18,10 +18,7 @@
 html, body{ height:100%; }
 body{
   margin:0;
-  background: radial-gradient(1100px 700px at 20% 0%, rgba(56,189,248,0.18), transparent),
-              radial-gradient(1100px 700px at 80% 10%, rgba(52,211,153,0.14), transparent),
-              radial-gradient(900px 600px at 50% 100%, rgba(251,191,36,0.10), transparent),
-              var(--bg);
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font);
 }
@@ -53,20 +50,8 @@ body{
   border-color: rgba(56,189,248,0.35);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
-.app[data-theme="space"]::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  background: repeating-linear-gradient(
-          to bottom,
-          rgba(255,255,255,0.02),
-          rgba(255,255,255,0.02) 1px,
-          transparent 1px,
-          transparent 3px
-  );
-  opacity:0.15;
-}
+.app[data-theme="space"]::before{ display:none; }
+
 
 .topbar{
   width:100%;
@@ -168,6 +153,15 @@ body{
   );
   transition: width 220ms ease;
 }
+.progress--area{
+  height: 10px;
+  opacity: 0.9;
+}
+
+.progress--area > div{
+  background: rgba(255,255,255,0.30);
+}
+
 
 .btn{
   appearance:none;
@@ -287,6 +281,10 @@ input, select{
   outline:none;
 }
 input::placeholder{ color: rgba(255,255,255,0.35); }
+
+.fieldError{ font-size: 12px; color: rgba(248,113,113,0.95); min-height: 14px; }
+
+.btn:focus-visible, .segmented__btn:focus-visible, .questRow:focus-visible{ outline: 2px solid rgba(167,139,250,0.9); outline-offset: 2px; }
 hr{
   border:0;
   border-top: 1px solid rgba(255,255,255,0.10);
@@ -295,4 +293,276 @@ hr{
 
 @media (min-width: 720px){
   .modalOverlay{ align-items:center; }
+}
+
+
+/* Responsive type scaling */
+:root{
+  --fs-title: clamp(20px, 3.5vw, 28px);
+  --fs-body: clamp(14px, 3vw, 16px);
+  --fs-small: clamp(12px, 2.6vw, 14px);
+}
+
+.sectionTitle{ font-size: var(--fs-title); }
+.small, .muted{ font-size: var(--fs-small); }
+
+.rowWrap{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Enemy badge emphasis */
+.badge--enemy{
+  font-weight: 800;
+  border-color: var(--accent-main);
+  background: rgba(0,0,0,0.22);
+}
+
+
+.badge--support{
+  font-weight: 800;
+  border-color: rgba(80, 200, 140, 0.65);
+  background: rgba(80, 200, 140, 0.12);
+}
+
+/* Smooth HP bar */
+.progress > div{
+  transition: width 260ms ease;
+}
+
+/* Damage flash */
+@keyframes dmgFlash{
+  0% { filter: brightness(1); }
+  35% { filter: brightness(1.25); }
+  100% { filter: brightness(1); }
+}
+
+.fx-dmg{
+  animation: dmgFlash 180ms ease;
+  box-shadow: 0 0 0 9999px rgba(255, 0, 0, 0.06) inset;
+}
+
+/* Floating damage number */
+.dmgFloat{
+  position: absolute;
+  right: 14px;
+  top: 54px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 14px;
+  background: rgba(255, 60, 90, 0.20);
+  border: 1px solid rgba(255, 60, 90, 0.45);
+  color: rgba(255, 255, 255, 0.95);
+  pointer-events: none;
+  transform: translateY(0);
+  opacity: 0;
+}
+
+@keyframes floatUp{
+  0% { transform: translateY(6px); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateY(-18px); opacity: 0; }
+}
+
+.dmgFloat.is-on{
+  animation: floatUp 520ms ease forwards;
+}
+
+/* Boss defeat pop */
+@keyframes bossBlast{
+  0% { transform: scale(1); filter: brightness(1); }
+  30% { transform: scale(1.03); filter: brightness(1.4); }
+  60% { transform: scale(0.98); filter: brightness(1.1); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.fx-boss{
+  animation: bossBlast 420ms ease;
+  box-shadow: 0 0 0 9999px rgba(255, 200, 80, 0.08) inset;
+}
+
+@media (max-width: 420px){
+  .card.section{ padding: 14px; }
+  .badge{ padding: 6px 10px; }
+}
+
+
+@keyframes levelUpGlow {
+  0% { transform: scale(1); filter: brightness(1); }
+  20% { transform: scale(1.12); filter: brightness(1.5); }
+  55% { transform: scale(1.06); filter: brightness(1.25); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.levelBadge.fx-levelup {
+  animation: levelUpGlow 900ms ease;
+  background: rgba(255, 210, 90, 0.22);
+  border-color: rgba(255, 210, 90, 0.70);
+  box-shadow: 0 0 0 9999px rgba(255, 210, 90, 0.06) inset, 0 10px 30px rgba(255, 210, 90, 0.12);
+}
+
+.btn.danger:disabled {
+  opacity: 0.4;
+}
+
+
+/* Support encounters (repairs, rescues, unlocks) */
+.progress--support > div{ transition: width 260ms ease; background: rgba(80, 200, 140, 0.85); }
+.progress--enemy > div{ transition: width 260ms ease; }
+
+/* Daily Edge badge */
+.edgeBadge{
+  display:inline-flex;
+  align-items:center;
+  margin-top:6px;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  border:1px solid rgba(148,163,184,0.25);
+  background: rgba(15,23,42,0.6);
+}
+.edgeBadge--hidden{ display:none; }
+.edgeBadge__label{ white-space:nowrap; }
+.edgeBadge--common{ box-shadow: 0 0 0 1px rgba(148,163,184,0.12) inset; }
+.edgeBadge--uncommon{ box-shadow: 0 0 0 1px rgba(34,197,94,0.18) inset; }
+.edgeBadge--rare{ box-shadow: 0 0 0 1px rgba(250,204,21,0.22) inset; }
+
+/* Quest list item controls */
+.btn.icon{
+  padding:6px 8px;
+  min-width:auto;
+}
+.btn.icon.danger{
+  opacity:0.9;
+}
+
+/* Subtle icon actions until hover or focus */
+.questActions{
+  display:flex;
+  gap:6px;
+  align-items:center;
+}
+.btnIcon{
+  opacity:0.18;
+  transition: opacity 140ms ease;
+}
+.btnIcon.is-on{
+  opacity:0.65;
+}
+.questRow:hover .btnIcon,
+.questRow:focus-within .btnIcon{
+  opacity:0.95;
+}
+.questRow:hover .btnIcon.danger,
+.questRow:focus-within .btnIcon.danger{
+  opacity:0.9;
+}
+.btnIcon:focus-visible{
+  opacity:0.95;
+}
+
+/* Count pill and repeat tag */
+.metaInline{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.countPill{
+  display:inline-flex;
+  align-items:center;
+  padding:2px 8px;
+  border-radius:999px;
+  border: 1px solid rgba(148,163,184,0.18);
+  background: rgba(0,0,0,0.18);
+  line-height:1.2;
+}
+.countPill strong{
+  font-weight:700;
+}
+.repeatTag{
+  display:inline-flex;
+  align-items:center;
+  padding:2px 8px;
+  border-radius:999px;
+  border: 1px solid rgba(148,163,184,0.14);
+  background: rgba(0,0,0,0.14);
+  opacity:0.9;
+}
+.listItem--fav{
+  border-color: rgba(250,204,21,0.25);
+}
+
+/* Row footer spacing */
+.row--bottom{
+  margin-top:10px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Floating hit indicator */
+.floatHit{
+  position:absolute;
+  right: 12px;
+  top: 10px;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(148,163,184,0.18);
+  animation: floatUp 0.8s ease-out forwards;
+  pointer-events:none;
+}
+.floatHit--enemy{ }
+.floatHit--support{ }
+@keyframes floatUp{
+  0%{ transform: translateY(0); opacity: 1; }
+  100%{ transform: translateY(-18px); opacity: 0; }
+}
+
+
+/* Segmented controls (mobile-friendly replacements for selects) */
+.segmented{ display:flex; flex-wrap:wrap; gap:8px; }
+.segmented__item{ position:relative; }
+.segmented__item input{ position:absolute; opacity:0; pointer-events:none; }
+.segmented__btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.04);
+  font-size: 14px;
+  line-height: 1;
+  user-select:none;
+}
+.segmented__item input:checked + .segmented__btn{
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.28);
+}
+
+.pill.is-update{ cursor:pointer; }
+
+.questRow{ cursor:pointer; }
+.questRow[aria-disabled="true"]{ cursor:default; opacity:0.60; }
+.questRow[aria-disabled="true"] .item__title{ text-decoration: line-through; }
+
+
+.formError{
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--danger);
+}
+
+.appVersionBadge{
+  position: fixed;
+  bottom: 10px;
+  right: 12px;
+  font-size: 12px;
+  opacity: 0.55;
+  pointer-events: none;
+  user-select: none;
 }

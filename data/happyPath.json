@@ -1,0 +1,204 @@
+{
+  "version": "0.6.2",
+  "smokeTests": [
+    {
+      "step": 1,
+      "action": "Add a Daily quest",
+      "expected": "Quest appears in Today list"
+    },
+    {
+      "step": 2,
+      "action": "Add a Once quest and complete it",
+      "expected": "Quest disappears from active list"
+    },
+    {
+      "step": 3,
+      "action": "Add a Count quest target 3, tap log 3 times",
+      "expected": "Count pill increments then completes, XP only on completion"
+    },
+    {
+      "step": 4,
+      "action": "Star a quest",
+      "expected": "Starred quest sorts to top"
+    },
+    {
+      "step": 5,
+      "action": "Delete a quest and confirm",
+      "expected": "Quest removed, counts and completion cleaned"
+    },
+    {
+      "step": 6,
+      "action": "Switch theme mid day",
+      "expected": "No crashes, progress continues"
+    },
+    {
+      "step": 7,
+      "action": "Refresh browser",
+      "expected": "State persists and UI loads"
+    }
+  ],
+  "seedQuests": [
+    {
+      "title": "Drink water",
+      "category": "Health",
+      "repeatType": "daily",
+      "effortType": "simple"
+    },
+    {
+      "title": "Book dentist",
+      "category": "Life",
+      "repeatType": "once",
+      "effortType": "simple"
+    },
+    {
+      "title": "Walk 10 minutes",
+      "category": "Fitness",
+      "repeatType": "daily",
+      "effortType": "count",
+      "countTarget": 3
+    }
+  ],
+  "seedStoryLog": [
+    {
+      "type": "system",
+      "text": "Happy path data loaded."
+    },
+    {
+      "type": "tip",
+      "text": "Try completing the three sample quests to test Daily, Once, and Count."
+    }
+  ],
+  "createdAt": "2026-02-12",
+  "starterHistory": [
+    {
+      "day": 1,
+      "date": "2026-02-12",
+      "theme": "fantasy",
+      "notes": "Initial smoke test run.",
+      "events": [
+        {
+          "type": "quest_added",
+          "title": "Drink water",
+          "repeatType": "daily",
+          "effortType": "simple"
+        },
+        {
+          "type": "quest_added",
+          "title": "Book dentist",
+          "repeatType": "once",
+          "effortType": "simple"
+        },
+        {
+          "type": "quest_added",
+          "title": "Walk 10 minutes",
+          "repeatType": "daily",
+          "effortType": "count",
+          "countTarget": 3
+        },
+        {
+          "type": "tip",
+          "text": "Complete quests to progress Area and battle encounter."
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "date": "2026-02-13",
+      "theme": "space",
+      "notes": "Theme switch resilience check.",
+      "events": [
+        {
+          "type": "theme_switched",
+          "from": "fantasy",
+          "to": "space"
+        },
+        {
+          "type": "expected",
+          "text": "No crashes, state persists, encounter continues."
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "date": "2026-02-14",
+      "theme": "fantasy",
+      "notes": "Completion flow and once-quest removal.",
+      "events": [
+        {
+          "type": "quest_completed",
+          "title": "Book dentist",
+          "repeatType": "once",
+          "expected": "Quest disappears after completion"
+        },
+        {
+          "type": "quest_progress",
+          "title": "Walk 10 minutes",
+          "effortType": "count",
+          "progress": "1/3",
+          "expected": "Quest remains until target"
+        },
+        {
+          "type": "quest_completed",
+          "title": "Drink water",
+          "expected": "Quest becomes completed for the day"
+        }
+      ]
+    },
+    {
+      "day": 4,
+      "date": "2026-02-15",
+      "theme": "space",
+      "notes": "Edge earn and encounter persistence across refresh.",
+      "events": [
+        {
+          "type": "refresh",
+          "expected": "Encounter and Area progress remain the same after reload"
+        },
+        {
+          "type": "edge_earned",
+          "rarity": "common",
+          "example": "Prepared",
+          "expected": "Edge shows for the next day only"
+        },
+        {
+          "type": "quest_completed",
+          "title": "Walk 10 minutes",
+          "expected": "Count quest completes at target and awards XP once"
+        }
+      ]
+    },
+    {
+      "day": 5,
+      "date": "2026-02-16",
+      "theme": "fantasy",
+      "notes": "Delete cleanup and favorites sorting.",
+      "events": [
+        {
+          "type": "favorite_toggled",
+          "title": "Drink water",
+          "expected": "Quest sorts to top"
+        },
+        {
+          "type": "quest_deleted",
+          "title": "Walk 10 minutes",
+          "expected": "Counts and completed ids cleaned up"
+        },
+        {
+          "type": "self_check_run",
+          "expected": "No integrity warnings"
+        }
+      ]
+    }
+  ],
+  "recommendedManualChecklist": {
+    "timeBudgetMinutes": 2,
+    "runOrder": [
+      "Today screen",
+      "Add quest modal",
+      "Complete quests",
+      "Switch theme",
+      "Refresh",
+      "Progress screen"
+    ]
+  }
+}

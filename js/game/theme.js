@@ -6,6 +6,8 @@ export const THEMES = {
             campaignTitle: "Adventure",
             enemy: "Enemy",
             hp: "HP",
+            objective: "Objective",
+            progress: "Progress",
             chapter: "Chapter",
             addQuest: "Add quest",
             todayQuests: "Today quests",

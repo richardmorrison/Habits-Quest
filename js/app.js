@@ -20,6 +20,18 @@ function applyThemeFromState(){
   appRoot.dataset.theme = s.user?.themeId || "fantasy"
 }
 
+function ensureVersionBadge(){
+  const existing = document.getElementById("appVersionBadge")
+  if (existing) return
+  const v = getState()?.meta?.appVersion || ""
+  if (!v) return
+  const elDiv = document.createElement("div")
+  elDiv.id = "appVersionBadge"
+  elDiv.className = "appVersionBadge"
+  elDiv.textContent = `v${v}`
+  document.body.appendChild(elDiv)
+}
+
 async function main(){
   initState()
 
@@ -35,11 +47,13 @@ async function main(){
   }
 
   applyThemeFromState()
+  ensureVersionBadge()
 
   Router.init({
     defaultRoute: "today",
     onRoute: (routeName) => {
       applyThemeFromState()
+  ensureVersionBadge()
 
       for (const b of tabs.querySelectorAll(".tab")) {
         b.classList.toggle("is-active", b.dataset.route === routeName)
@@ -58,8 +72,30 @@ async function main(){
 
   if ("serviceWorker" in navigator) {
     try{
-      await navigator.serviceWorker.register("./service-worker.js", { scope: "./" })
+      const reg = await navigator.serviceWorker.register("./service-worker.js", { scope: "./" })
       pillStatus.textContent = "Offline-ready"
+      const showUpdate = () => {
+        pillStatus.textContent = "Update available"
+        pillStatus.classList.add("is-update")
+        pillStatus.title = "Tap to refresh"
+      }
+      if (reg.waiting) showUpdate()
+      reg.addEventListener("updatefound", () => {
+        const sw = reg.installing
+        if (!sw) return
+        sw.addEventListener("statechange", () => {
+          if (sw.state === "installed" && navigator.serviceWorker.controller) {
+            showUpdate()
+          }
+        })
+      })
+      pillStatus.addEventListener("click", () => {
+        if (!reg.waiting) return
+        reg.waiting.postMessage({ type: "SKIP_WAITING" })
+      })
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (pillStatus.classList.contains("is-update")) window.location.reload()
+      })
     } catch (err) {
       pillStatus.textContent = "Service worker off"
       toast("Offline mode not available yet.")

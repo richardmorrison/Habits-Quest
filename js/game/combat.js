@@ -15,6 +15,12 @@ export function computeDamage(state, quest){
 }
 
 export function applyDamage(state, dmg){
-  state.campaign.enemy.hp = Math.max(0, state.campaign.enemy.hp - dmg);
-  return state;
+  const enc = state.campaign.encounter;
+  if (!enc) return state;
+  if (enc.type === "enemy") {
+    enc.progress = Math.max(0, enc.progress - dmg);
+  } else {
+    enc.progress = Math.min(enc.max, enc.progress + dmg);
+  }
+return state;
 }
